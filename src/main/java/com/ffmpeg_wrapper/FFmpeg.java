@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class FFmpeg {
+
 	private String workingDirectory;
 	private String input;
 	private String output;
@@ -66,6 +67,7 @@ public class FFmpeg {
 		this.inputOptions = builder.inputOptions;
 		this.outputOptions = builder.outputOptions;
 		this.globalOptions = builder.globalOptions;
+
 	}
 
 	public static FFmpegBuilder builder() {
@@ -97,18 +99,19 @@ public class FFmpeg {
 		if (logFile != null) {
 			File logFile = new File(workingDirectory, this.logFile);
 			pb.redirectError(logFile);
+		} else {
+			pb.redirectError(ProcessBuilder.Redirect.DISCARD); // Discard error stream
 		}
 		try {
 			Process process = pb.start();
 			int exitCode = process.waitFor();
+			String msg = (logFile == null) ? "" : " you can check the log of this command at" + logFile;
 
 			if (exitCode == 0) {
-				System.out.println("FFmpeg process completed successfully. \nYou can check the log of this command at "
-						+ logFile.toString());
+				System.out.println("FFmpeg process completed successfully" + msg);
 				System.out.println(pb.command());
 			} else {
-				System.err.println("FFmpeg process failed with exit code: " + exitCode
-						+ "\nYou can check the log of this command at " + logFile.toString());
+				System.err.println("FFmpeg process failed with exit code: " + exitCode + msg);
 				System.out.println(pb.command());
 			}
 		} catch (IOException | InterruptedException e) {
@@ -209,7 +212,7 @@ public class FFmpeg {
 		private String output;
 
 		private boolean isOverwriteOutput;
-		private boolean isHideBanner;
+		private boolean isHideBanner = true;
 		private boolean isStreamCopy;
 
 		private String logFile;
@@ -226,7 +229,6 @@ public class FFmpeg {
 		private String videoAspectRatio;
 		private String startTime;
 		private String endTime;
-
 		private List<String> globalOptions = new ArrayList<>();
 		private Map<String, String> inputOptions = new HashMap<>();
 		private Map<String, String> outputOptions = new HashMap<>();
