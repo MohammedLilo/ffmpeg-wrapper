@@ -78,13 +78,14 @@ public class FFmpeg {
 		List<String> command = new ArrayList<>();
 		command.add("ffmpeg");
 		command.addAll(globalOptions);
-		command.add("-i");
-		command.add(this.input);
-
+		
 		inputOptions.forEach((key, val) -> {
 			command.add(key);
 			command.add(val);
 		});
+		
+		command.add("-i");
+		command.add(this.input);
 
 		outputOptions.forEach((key, val) -> {
 			command.add(key);
