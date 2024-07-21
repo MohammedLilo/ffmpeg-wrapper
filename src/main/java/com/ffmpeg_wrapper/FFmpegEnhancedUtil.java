@@ -1,38 +1,84 @@
 package com.ffmpeg_wrapper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.ffmpeg_wrapper.enums.VideoResolution;
 import com.ffmpeg_wrapper.mapping.FFprobeOutput;
 import com.ffmpeg_wrapper.mapping.Stream;
 
-public class FFmpegUtil {
+public class FFmpegEnhancedUtil {
+
 	/**
 	 * Reduces the file size of a video or audio file to a target size (in bytes).
 	 *
 	 * @param inputFilePath  Input file path.
 	 * @param outputFilePath Output file path.
-	 * @param targetSize     Target file size in bytes(TODO specify whether we are
-	 *                       using decimal or binary prefixes).
+	 * @param targetSize     Target file size in bytes (using binary prefix).
 	 */
-	static void reduceFileSize(String inputFilePath, String outputFilePath, long targetSize) {
+	public static void reduceFileSize(String inputFilePath, String outputFilePath, long targetSize) {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		long size = output.getFormat().getSize();
-
 		List<Long> newBitrates = new ArrayList<>();
-		double ratio = (targetSize / size);
-
+		double ratio = (double) targetSize / size;
+		long newBitrate = 0;
 		for (int i = 0; i < streams.size(); i++) {
-			newBitrates.add((long) (Math.ceil(streams.get(i).getBitRate() * ratio)));
+			newBitrate = (long) (Math.ceil(streams.get(i).getBitRate() * ratio));
+			newBitrates.add(newBitrate);
 		}
-		FFmpeg.builder().input(inputFilePath).output(outputFilePath).isOverwriteOutput(true).build();
+		List<StreamMapping> streamMappings = mapStreamsAndBitrates(streams, newBitrates);
 
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).build();
+		FFmpegEnhanced fFmpegEnhanced = FFmpegEnhanced.builder().input(inputFilePath).outputs(List.of(outputFilePath))
+				.globalOptions(globalOptions).outputOptions(List.of(outputOptions)).build();
+		fFmpegEnhanced.buildCommandAndExecute();
 	}
 
-	static void changeBitRates(String inputFilePath, String outputFilePath, List<Double> newBitRates) {
+	private static List<StreamMapping> mapStreamsAndBitrates(List<Stream> streams, List<Long> newBitrates) {
+		String codecType = "";
+		Map<String, Integer> map = new HashMap<>();
+		List<StreamMapping> streamMappings = new ArrayList<>();
+		String codecName;
+		int streamIndex;
+		long bitrate;
+		Stream stream;
+		for (int i = 0; i < streams.size(); i++) {
+			stream = streams.get(i);
+			codecType = stream.getCodecType().substring(0, 1);
+			codecName = stream.getCodecName();
+			streamIndex = map.getOrDefault(codecType, 0);
+			bitrate = newBitrates.get(i);
 
+			streamMappings
+					.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName).bitrate(bitrate).build());
+			map.put(codecType, ++streamIndex);
+		}
+
+		return streamMappings;
+	}
+
+	private static List<StreamMapping> mapStreams(List<Stream> streams) {
+
+		String codecType;
+		String codecName;
+		int streamIndex;
+		Map<String, Integer> map = new HashMap<>();
+		List<StreamMapping> streamMappings = new ArrayList<>();
+		Stream stream;
+
+		for (int i = 0; i < streams.size(); i++) {
+			stream = streams.get(i);
+			codecType = stream.getCodecType().substring(0, 1);
+			codecName = stream.getCodecName();
+			streamIndex = map.getOrDefault(codecType, 0);
+			streamMappings.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName).build());
+			map.put(codecType, ++streamIndex);
+		}
+		return streamMappings;
 	}
 
 	/**
@@ -45,13 +91,30 @@ public class FFmpegUtil {
 	 * @param height         Target height in pixels.
 	 */
 	static void changeResolution(String inputFilePath, String outputFilePath, int width, int height) {
-		FFmpeg.builder().videoResolution(width + "x" + height).input(inputFilePath).isOverwriteOutput(true)
-				.output(outputFilePath).build().buildCommandAndExecute();
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreams(streams);
+
+		OutputOptions outputOptions = OutputOptions.builder().videoResolution(String.format("%dx%d", width, height))
+				.streamsMappings(streamMappings).build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+		FFmpegEnhanced.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
+
 	}
 
 	static void changeResolution(String inputFilePath, String outputFilePath, VideoResolution newResolution) {
-		FFmpeg.builder().videoResolution(newResolution.getWidth() + "x" + newResolution.getHeight())
-				.input(inputFilePath).isOverwriteOutput(true).output(outputFilePath).build().buildCommandAndExecute();
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreams(streams);
+
+		OutputOptions outputOptions = OutputOptions.builder()
+				.videoResolution(String.format("%dx%d", newResolution.getWidth(), newResolution.getHeight()))
+				.streamsMappings(streamMappings).build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+		FFmpegEnhanced.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
+
 	}
 
 	/**
@@ -63,8 +126,6 @@ public class FFmpegUtil {
 	 * @param duration       Duration of the segment to extract (in seconds).
 	 */
 	static void extractVideoSegment(String inputFilePath, String outputFilePath, String startTime, String duration) {
-		FFmpeg.builder().startTime(startTime).duration(duration).input(inputFilePath).isOverwriteOutput(true)
-				.output(outputFilePath).build().buildCommandAndExecute();
 	}
 
 	/**
@@ -75,8 +136,6 @@ public class FFmpegUtil {
 	 * @param format         Target format (e.g., mp4, avi).
 	 */
 	static void convertFormat(String inputFilePath, String outputFilePath, String format) {
-		FFmpeg.builder().format(format).input(inputFilePath).isOverwriteOutput(true).output(outputFilePath).build()
-				.buildCommandAndExecute();
 	}
 
 	/**
@@ -88,8 +147,6 @@ public class FFmpegUtil {
 	 * @param format         output file format (e.g. mp3, aac, etc).
 	 */
 	static void extractAudio(String inputFilePath, String outputFilePath, String format) {
-		FFmpeg.builder().input(inputFilePath).isOverwriteOutput(true).output(outputFilePath).isStreamCopy(true)
-				.format(format).build().buildCommandAndExecute();
 	}
 
 	/**
@@ -101,9 +158,6 @@ public class FFmpegUtil {
 	 * @param outputFilePath Output audio file path.
 	 */
 	static void extractAudio(String inputFilePath, String outputFilePath) {
-		FFmpeg.builder().input(inputFilePath).isOverwriteOutput(true).output(outputFilePath).isStreamCopy(true).build()
-				.buildCommandAndExecute();
-
 	}
 
 	/**
@@ -153,4 +207,5 @@ public class FFmpegUtil {
 	static void addWatermark(String inputFilePath, String outputFilePath, String watermarkImage, int xPosition,
 			int yPosition) {
 	}
+
 }

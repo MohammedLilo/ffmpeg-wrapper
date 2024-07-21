@@ -38,7 +38,6 @@ public class FFprobe {
 		this.verbosityLevel = builder.verbosityLevel;
 		this.ffprobeOutputFormat = builder.ffprobeOutputFormat;
 		this.entriesToShow = builder.entriesToShow;
-//		this.selectedStreams = builder.selectedStreams;
 		this.selectedStream = builder.selectedStream;
 		this.processBuilder = builder.processBuilder;
 		this.command = builder.command;

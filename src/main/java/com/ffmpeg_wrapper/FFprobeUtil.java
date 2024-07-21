@@ -1,6 +1,7 @@
 package com.ffmpeg_wrapper;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,7 +34,28 @@ public class FFprobeUtil {
 	}
 
 	public static List<Stream> extractStreams(String filePath) {
-		return extractMetadata(filePath).getStreams();
+		FFprobe ffprobe = FFprobe.builder().inputFilePath(filePath).entryToShow(StreamMetadata.ALL)
+				.ffprobeOutputFormat(FFprobeOutputFormat.JSON).build();
+		ffprobe.probe();
+		FFprobeOutput output = null;
+		try {
+			output = mapper.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
+		} catch (JsonProcessingException e) {
+			System.out.println(e.getMessage());
+		}
+		return output.getStreams();
+	}
+
+	public static List<Stream> extractStreamsByType(String filePath, StreamType streamType) {
+		List<Stream> allStreams = extractStreams(filePath);
+		List<Stream> specificStreams = new ArrayList<>();
+
+		for (int i = 0; i < allStreams.size(); i++) {
+			if (allStreams.get(i).getCodecType().charAt(0) == streamType.toString().charAt(0)) {
+				specificStreams.add(allStreams.get(i));
+			}
+		}
+		return specificStreams;
 	}
 
 	/**
@@ -186,4 +208,5 @@ public class FFprobeUtil {
 	public static boolean hasSubtitleStream(String filePath) {
 		return extractSpecificMetadata(filePath, StreamMetadata.CODEC_TYPE, StreamType.SUBTITLE, 0) != null;
 	}
+
 }
