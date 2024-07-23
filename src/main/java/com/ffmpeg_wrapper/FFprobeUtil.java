@@ -12,7 +12,7 @@ import com.ffmpeg_wrapper.mapping.Stream;
 import com.ffmpeg_wrapper.mapping.Tags;
 
 public class FFprobeUtil {
-	private static ObjectMapper mapper = new ObjectMapper();
+	private final static ObjectMapper MAPPER = new ObjectMapper();
 
 	/**
 	 * Extracts all metadata from a given media file.
@@ -26,7 +26,7 @@ public class FFprobeUtil {
 		ffprobe.probe();
 		FFprobeOutput output = null;
 		try {
-			output = mapper.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
+			output = MAPPER.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
 		} catch (JsonProcessingException e) {
 			System.out.println(e.getMessage());
 		}
@@ -39,7 +39,7 @@ public class FFprobeUtil {
 		ffprobe.probe();
 		FFprobeOutput output = null;
 		try {
-			output = mapper.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
+			output = MAPPER.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
 		} catch (JsonProcessingException e) {
 			System.out.println(e.getMessage());
 		}
@@ -77,7 +77,7 @@ public class FFprobeUtil {
 		ffprobe.probe();
 		FFprobeOutput output = null;
 		try {
-			output = mapper.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
+			output = MAPPER.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
 		} catch (JsonProcessingException e) {
 			System.out.println(e.getMessage());
 		}
@@ -107,7 +107,7 @@ public class FFprobeUtil {
 		ffprobe.probe();
 		FFprobeOutput output = null;
 		try {
-			output = mapper.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
+			output = MAPPER.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
 
 		} catch (JsonProcessingException e) {
 			System.out.println(e.getMessage());
@@ -127,7 +127,7 @@ public class FFprobeUtil {
 		ffprobe.probe();
 		FFprobeOutput output = null;
 		try {
-			output = mapper.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
+			output = MAPPER.readValue(ffprobe.getProbeResult(), FFprobeOutput.class);
 
 		} catch (JsonProcessingException e) {
 			System.out.println(e.getMessage());
