@@ -1,6 +1,9 @@
 package com.ffmpeg_wrapper;
 
 import java.io.IOException;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAmount;
+import java.util.List;
 
 import com.ffmpeg_wrapper.enums.VideoResolution;
 
@@ -37,8 +40,8 @@ public class App {
 //				.globalOptions(GlobalOptions.builder().isOverwriteOutput(true).build())
 //				.outputOptions(List.of(OutputOptions.builder().videoResolution("1280x720").volume("13").build())).logFile("C:\\Users\\msi-pc\\Desktop\\log.txt").build()
 //				.buildCommandAndExecute();
-		FFmpegEnhancedUtil.reduceFileSize("C:\\Users\\msi-pc\\Desktop\\shortbunny2.mp4",
-				"C:\\Users\\msi-pc\\Desktop\\outcompressed3.mp4", 1 * 1_048_576);
+//		FFmpegEnhancedUtil.reduceFileSize("C:\\Users\\msi-pc\\Desktop\\shortbunny2.mp4",
+//				"C:\\Users\\msi-pc\\Desktop\\outcompressed3.mp4", 1 * 1_048_576);
 
 //		FFmpegEnhancedUtil.changeResolution("C:\\Users\\msi-pc\\Desktop\\shortbunny2.mp4",
 //				"C:\\Users\\msi-pc\\Desktop\\new res.mp4", VideoResolution.P480);
@@ -48,6 +51,11 @@ public class App {
 //				.outputOptions(List.of(OutputOptions.builder().duration("1").startTime("00:00:00").build()))
 //				.globalOptions(GlobalOptions.builder().isOverwriteOutput(true).build()).build();
 //		f.buildCommandAndExecute();
+
+		FFmpegEnhancedUtil.splitVideo("C:\\Users\\msi-pc\\Desktop\\big_bunny_video.mp4",
+				List.of("C:\\Users\\msi-pc\\Desktop\\seg1.mp4", "C:\\Users\\msi-pc\\Desktop\\seg2.mp4",
+						"C:\\Users\\msi-pc\\Desktop\\seg3.mp4"),
+				List.of(LocalTime.of(0, 0, 10), LocalTime.of(0, 0, 30), LocalTime.of(0, 0, 10)));
 
 	}
 }

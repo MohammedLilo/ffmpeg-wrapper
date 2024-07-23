@@ -41,6 +41,8 @@ public class StreamMapping {
 		private List<String> command = new ArrayList<>();
 
 		public StreamMappingBuilder(int streamIndex, String codecType) {
+			command.add("-map");
+			command.add(String.format("%s:%d", codecType, streamIndex));
 			this.streamIndex = streamIndex;
 			this.codecType = codecType;
 		}
@@ -82,8 +84,6 @@ public class StreamMapping {
 		}
 
 		public StreamMapping build() {
-			command.add("-map");
-			command.add(String.format("%s:%d", codecType, streamIndex));
 
 			if (isStreamCopy) {
 				command.add(String.format("-c:%s:%d", codecType, streamIndex));

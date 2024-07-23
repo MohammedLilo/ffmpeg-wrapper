@@ -72,7 +72,6 @@ public class FFmpegEnhanced {
 //			command.add(output);
 //
 //		});
-		System.out.println(command);
 		ProcessBuilder pb = new ProcessBuilder(command);
 		if (this.workingDirectory != null) {
 			pb.directory(new File(this.workingDirectory));
@@ -90,10 +89,10 @@ public class FFmpegEnhanced {
 
 			if (exitCode == 0) {
 				System.out.println("FFmpeg process completed successfully" + msg);
-				System.out.println(pb.command());
+				System.out.println(pb.command().toString().replace(",", ""));
 			} else {
 				System.err.println("FFmpeg process failed with exit code: " + exitCode + msg);
-				System.out.println(pb.command());
+				System.out.println(pb.command().toString().replace(",", ""));
 			}
 		} catch (IOException | InterruptedException e) {
 			System.out.println(e.getMessage());

@@ -1,10 +1,12 @@
 package com.ffmpeg_wrapper;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.ffmpeg_wrapper.OutputOptions.OutputOptionsBuilder;
 import com.ffmpeg_wrapper.enums.VideoResolution;
 import com.ffmpeg_wrapper.mapping.FFprobeOutput;
 import com.ffmpeg_wrapper.mapping.Stream;
@@ -81,6 +83,51 @@ public class FFmpegEnhancedUtil {
 		return streamMappings;
 	}
 
+	private static List<StreamMapping> mapStreamsOfType(List<Stream> streams, StreamType streamType) {
+
+		String codecType;
+		String codecName;
+		int streamIndex;
+		Map<String, Integer> map = new HashMap<>();
+		List<StreamMapping> streamMappings = new ArrayList<>();
+		Stream stream;
+
+		for (int i = 0; i < streams.size(); i++) {
+			stream = streams.get(i);
+			codecType = stream.getCodecType().substring(0, 1);
+
+			if (!codecType.equals(streamType.getType()))
+				continue;
+
+			codecName = stream.getCodecName();
+			streamIndex = map.getOrDefault(codecType, 0);
+			streamMappings.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName).build());
+			map.put(codecType, ++streamIndex);
+		}
+		return streamMappings;
+	}
+
+	private static List<StreamMapping> mapStreamsAndCopy(List<Stream> streams) {
+
+		String codecType;
+		String codecName;
+		int streamIndex;
+		Map<String, Integer> map = new HashMap<>();
+		List<StreamMapping> streamMappings = new ArrayList<>();
+		Stream stream;
+
+		for (int i = 0; i < streams.size(); i++) {
+			stream = streams.get(i);
+			codecType = stream.getCodecType().substring(0, 1);
+			codecName = stream.getCodecName();
+			streamIndex = map.getOrDefault(codecType, 0);
+			streamMappings
+					.add(StreamMapping.builder(streamIndex, codecType).isStreamCopy(true).codecName(codecName).build());
+			map.put(codecType, ++streamIndex);
+		}
+		return streamMappings;
+	}
+
 	/**
 	 * Changes the video resolution to the specified width and height. It will
 	 * overwrite the output file if it already exists.
@@ -90,7 +137,7 @@ public class FFmpegEnhancedUtil {
 	 * @param width          Target width in pixels.
 	 * @param height         Target height in pixels.
 	 */
-	static void changeResolution(String inputFilePath, String outputFilePath, int width, int height) {
+	public static void changeResolution(String inputFilePath, String outputFilePath, int width, int height) {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
@@ -103,7 +150,7 @@ public class FFmpegEnhancedUtil {
 
 	}
 
-	static void changeResolution(String inputFilePath, String outputFilePath, VideoResolution newResolution) {
+	public static void changeResolution(String inputFilePath, String outputFilePath, VideoResolution newResolution) {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
@@ -118,65 +165,126 @@ public class FFmpegEnhancedUtil {
 	}
 
 	/**
-	 * Extracts a specific time duration from a video.
-	 *
-	 * @param inputFilePath  Input video file path.
-	 * @param outputFilePath Output video file path.
-	 * @param startTime      Start time of the segment to extract (in seconds).
-	 * @param duration       Duration of the segment to extract (in seconds).
-	 */
-	static void extractVideoSegment(String inputFilePath, String outputFilePath, String startTime, String duration) {
-	}
-
-	/**
-	 * Converts a video to a different format.
+	 * Converts a video or an audio to a different format.
 	 *
 	 * @param inputFilePath  Input video file path.
 	 * @param outputFilePath Output video file path.
 	 * @param format         Target format (e.g., mp4, avi).
 	 */
-	static void convertFormat(String inputFilePath, String outputFilePath, String format) {
+	public static void convertFormat(String inputFilePath, String outputFilePath, String format) {
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreams(streams);
+
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).format(format).build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+
+		FFmpegEnhanced.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
 	}
 
 	/**
-	 * Extracts audio from an input file and stores it as a <code>format</code> file
-	 * at <code>outputFilePath</code>.
+	 * Converts a video or an audio to a different format. the output file's format
+	 * will be inferred from the output file name.
+	 * 
 	 *
 	 * @param inputFilePath  Input video file path.
-	 * @param outputFilePath Output audio file path.
-	 * @param format         output file format (e.g. mp3, aac, etc).
+	 * @param outputFilePath Output video file path.
+	 * @param format         Target format (e.g., mp4, avi).
 	 */
-	static void extractAudio(String inputFilePath, String outputFilePath, String format) {
+	public static void convertFormat(String inputFilePath, String outputFilePath) {
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreams(streams);
+
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+
+		FFmpegEnhanced.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
 	}
 
 	/**
-	 * Extracts audio from an input file and stores it at
-	 * <code>outputFilePath</code>. Output file's format will be inferred from the
-	 * output file name.
+	 * Cuts a specific part of the playable media (video or audio file) from the
+	 * input file and saves it to the output file.
+	 * 
+	 * @param inputFilePath  The path to the input file.
+	 * @param outputFilePath The path to save the output file.
+	 * @param startTime      The start time from which to begin cutting the file.
+	 *                       The format should be "hh:mm:ss" or "ss" for seconds.
+	 * @param duration       The duration of the file segment to cut. The format
+	 *                       should be "hh:mm:ss" or "ss" for seconds.
+	 * 
+	 *                       Example usage: cutPlayableMedia("input.mp4",
+	 *                       "output.mp4", "00:00:00", "00:00:10"); This will cut
+	 *                       the first 10 seconds from the input.mp4 and save it as
+	 *                       output.mp4.
+	 */
+	public static void cutPlayableMedia(String inputFilePath, String outputFilePath, String startTime,
+			String duration) {
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreams(streams);
+
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+
+		OutputOptions outputOptions = OutputOptions.builder().startTime(startTime).duration(duration)
+				.streamsMappings(streamMappings).build();
+
+		FFmpegEnhanced.builder().globalOptions(globalOptions).input(inputFilePath).outputOptions(outputOptions)
+				.outputs(outputFilePath).build().buildCommandAndExecute();
+	}
+
+	/**
+	 * Extracts all streams of a specific type (i.e. audio or video or subtitle,
+	 * etc.)from an input file and saves it to the output file. Output file's format
+	 * will be inferred from the output file name.
 	 *
-	 * @param inputFilePath  Input video file path.
-	 * @param outputFilePath Output audio file path.
+	 * @param inputFilePath  Input file path.
+	 * @param outputFilePath Output file path.
+	 * @param streamType     Type of the streams to extract.
+	 * 
 	 */
-	static void extractAudio(String inputFilePath, String outputFilePath) {
+	public static void extractStreamsOfType(String inputFilePath, String outputFilePath, StreamType streamType) {
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreamsOfType(streams, streamType);
+
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).build();
+
+		FFmpegEnhanced.builder().globalOptions(globalOptions).input(inputFilePath).outputOptions(outputOptions)
+				.outputs(outputFilePath).build().buildCommandAndExecute();
 	}
 
 	/**
-	 * Concatenates multiple videos into a single video file.
+	 * Splits a video to multiple video files of the same duration.
 	 *
 	 * @param inputFiles     List of input video files to concatenate.
 	 * @param outputFilePath Output video file path.
+	 * 
 	 */
-	static void concatenateVideos(List<String> inputFiles, String outputFilePath) {
-	}
+	public static void splitVideo(String inputFilePath, List<String> outputFilesPaths, List<LocalTime> duration) {
 
-	/**
-	 * Applies a video filter to resize, crop, or otherwise modify the video frames.
-	 *
-	 * @param inputFilePath  Input video file path.
-	 * @param outputFilePath Output video file path.
-	 * @param filter         Video filter expression (e.g., scale=w=640:h=480).
-	 */
-	static void applyVideoFilter(String inputFilePath, String outputFilePath, String filter) {
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreamsAndCopy(streams);
+		List<OutputOptions> outputOptionsList = new ArrayList<>();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+		LocalTime startTime = LocalTime.of(0, 0, 0);
+		LocalTime durationTime = LocalTime.of(0, 0, 0);
+		for (int i = 0; i < outputFilesPaths.size(); i++) {
+			startTime = startTime.plusSeconds(durationTime.toSecondOfDay());
+			durationTime = duration.get(i);
+
+			outputOptionsList.add(OutputOptions.builder().duration(durationTime.toString())
+					.startTime(startTime.toString()).streamsMappings(streamMappings).build());
+		}
+
+		FFmpegEnhanced.builder().globalOptions(globalOptions).input(inputFilePath).outputOptions(outputOptionsList)
+				.outputs(outputFilesPaths).build().buildCommandAndExecute();
+
 	}
 
 	/**
@@ -189,23 +297,8 @@ public class FFmpegEnhancedUtil {
 	 * @param width          Width of the thumbnail image.
 	 * @param height         Height of the thumbnail image.
 	 */
-	static void generateThumbnail(String inputFilePath, String outputFilePath, int time, int width, int height) {
+	public static void generateThumbnail(String inputFilePath, String outputFilePath, int time, int width, int height) {
 
-	}
-
-	/**
-	 * Adds watermark to a video at specified position.
-	 *
-	 * @param inputFilePath  Input video file path.
-	 * @param outputFilePath Output video file path.
-	 * @param watermarkImage Watermark image file path.
-	 * @param xPosition      Horizontal position of the watermark (in pixels from
-	 *                       the left).
-	 * @param yPosition      Vertical position of the watermark (in pixels from the
-	 *                       top).
-	 */
-	static void addWatermark(String inputFilePath, String outputFilePath, String watermarkImage, int xPosition,
-			int yPosition) {
 	}
 
 }
