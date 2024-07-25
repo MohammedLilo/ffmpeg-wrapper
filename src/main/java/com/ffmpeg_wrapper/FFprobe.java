@@ -178,10 +178,9 @@ public class FFprobe {
 
 				command.add(sb.toString());
 			}
-			if (ffprobeOutputFormat == null) {
-				command.add("-of");
-				command.add(FFprobeOutputFormat.NOPRINTWRAPPERS_NOKEY.toString());
-			}
+			command.add("-of");
+			command.add(ffprobeOutputFormat.toString());
+			
 			return new FFprobe(this);
 		}
 	}

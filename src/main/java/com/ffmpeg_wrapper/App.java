@@ -1,8 +1,6 @@
 package com.ffmpeg_wrapper;
 
 import java.io.IOException;
-import java.time.LocalTime;
-import java.util.List;
 
 public class App {
 	public static void main(String[] args) throws InterruptedException, IOException {
@@ -53,5 +51,6 @@ public class App {
 //				List.of("C:\\Users\\msi-pc\\Desktop\\seg1.mp4", "C:\\Users\\msi-pc\\Desktop\\seg2.mp4",
 //						"C:\\Users\\msi-pc\\Desktop\\seg3.mp4"),
 //				List.of(LocalTime.of(0, 0, 10), LocalTime.of(0, 0, 30), LocalTime.of(0, 0, 10)));
+
 	}
 }
