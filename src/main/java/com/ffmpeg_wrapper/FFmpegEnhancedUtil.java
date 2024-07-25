@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ffmpeg_wrapper.OutputOptions.OutputOptionsBuilder;
 import com.ffmpeg_wrapper.enums.VideoResolution;
 import com.ffmpeg_wrapper.mapping.FFprobeOutput;
 import com.ffmpeg_wrapper.mapping.Stream;

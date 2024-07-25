@@ -2,10 +2,7 @@ package com.ffmpeg_wrapper;
 
 import java.io.IOException;
 import java.time.LocalTime;
-import java.time.temporal.TemporalAmount;
 import java.util.List;
-
-import com.ffmpeg_wrapper.enums.VideoResolution;
 
 public class App {
 	public static void main(String[] args) throws InterruptedException, IOException {
