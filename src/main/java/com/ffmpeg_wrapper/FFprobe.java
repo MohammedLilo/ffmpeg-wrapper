@@ -28,7 +28,6 @@ public class FFprobe {
 
 	private String probeResult = "";
 	private String probeError = "";
-	private BufferedReader reader;
 
 	public FFprobe(FFprobeBuilder builder) {
 		this.workingDirectory = builder.workingDirectory;
@@ -50,18 +49,21 @@ public class FFprobe {
 
 	public void probe() {
 		Process process;
+		BufferedReader resultReader = null;
+		BufferedReader errorReader = null;
 		try {
 			StringBuilder probeResult = new StringBuilder();
 			StringBuilder probeError = new StringBuilder();
-
 			String line;
+
 			process = processBuilder.start();
+
 			if (this.outputFilePath == null || this.outputFilePath.isBlank()) {
-				this.reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-				while ((line = this.reader.readLine()) != null) {
+				resultReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				while ((line = resultReader.readLine()) != null) {
 					probeResult.append(line).append("\n");
 				}
-				BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+				errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 				while ((line = errorReader.readLine()) != null) {
 					probeError.append(line).append("\n");
 				}
@@ -73,6 +75,20 @@ public class FFprobe {
 
 		} catch (IOException | InterruptedException e) {
 			System.out.println(e.getMessage());
+		} finally {
+			if (resultReader != null)
+				try {
+					resultReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			if (errorReader != null)
+				try {
+					errorReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
 		}
 	}
 
@@ -180,7 +196,7 @@ public class FFprobe {
 			}
 			command.add("-of");
 			command.add(ffprobeOutputFormat.toString());
-			
+
 			return new FFprobe(this);
 		}
 	}
