@@ -56,12 +56,11 @@ public class FFprobe {
 
 			String line;
 			process = processBuilder.start();
-			if (this.outputFilePath == null) {
+			if (this.outputFilePath == null || this.outputFilePath.isBlank()) {
 				this.reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 				while ((line = this.reader.readLine()) != null) {
 					probeResult.append(line).append("\n");
 				}
-			} else {
 				BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 				while ((line = errorReader.readLine()) != null) {
 					probeError.append(line).append("\n");
