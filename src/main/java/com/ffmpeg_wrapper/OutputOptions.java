@@ -19,10 +19,10 @@ public class OutputOptions {
 	private long bufSize;
 	private String format;
 	private String volume;
-	private String videoBitrate;
+//	private String videoBitrate;
 	private String videoResolution;
 	private String videoFrameRate;
-	private String videoCodec;
+//	private String videoCodec;
 	private String videoAspectRatio;
 	private List<StreamMapping> streamsMappings = new ArrayList<>();
 
@@ -35,10 +35,10 @@ public class OutputOptions {
 		this.bufSize = builder.bufSize;
 		this.format = builder.format;
 		this.volume = builder.volume;
-		this.videoBitrate = builder.videoBitrate;
+//		this.videoBitrate = builder.videoBitrate;
 		this.videoResolution = builder.videoResolution;
 		this.videoFrameRate = builder.videoFrameRate;
-		this.videoCodec = builder.videoCodec;
+//		this.videoCodec = builder.videoCodec;
 		this.videoAspectRatio = builder.videoAspectRatio;
 		this.streamsMappings = builder.streamsMappings;
 		this.duration = builder.duration;
@@ -61,10 +61,10 @@ public class OutputOptions {
 		private long bufSize;
 		private String format;
 		private String volume;
-		private String videoBitrate;
+//		private String videoBitrate;
 		private String videoResolution;
 		private String videoFrameRate;
-		private String videoCodec;
+//		private String videoCodec;
 		private String videoAspectRatio;
 		private List<StreamMapping> streamsMappings = new ArrayList<>();
 		private List<String> command = new ArrayList<>();
@@ -131,12 +131,12 @@ public class OutputOptions {
 			return this;
 		}
 
-		public OutputOptionsBuilder videoBitrate(String videoBitrate) {
-			command.add("-b:v");
-			command.add(videoBitrate);
-			this.videoBitrate = videoBitrate;
-			return this;
-		}
+//		public OutputOptionsBuilder videoBitrate(String videoBitrate) {
+//			command.add("-b:v");
+//			command.add(videoBitrate);
+//			this.videoBitrate = videoBitrate;
+//			return this;
+//		}
 
 		public OutputOptionsBuilder videoResolution(String videoResolution) {
 			command.add("-s");
@@ -152,13 +152,13 @@ public class OutputOptions {
 			return this;
 		}
 
-		public OutputOptionsBuilder videoCodec(String videoCodec) {
-			command.add("-c:v");
-			command.add(videoCodec);
-
-			this.videoCodec = videoCodec;
-			return this;
-		}
+//		public OutputOptionsBuilder videoCodec(String videoCodec) {
+//			command.add("-c:v");
+//			command.add(videoCodec);
+//
+//			this.videoCodec = videoCodec;
+//			return this;
+//		}
 
 		public OutputOptionsBuilder videoAspectRatio(String videoAspectRatio) {
 			command.add("-aspect");

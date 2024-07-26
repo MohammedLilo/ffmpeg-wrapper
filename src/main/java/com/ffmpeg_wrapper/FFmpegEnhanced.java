@@ -1,10 +1,18 @@
 package com.ffmpeg_wrapper;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.ffmpeg_wrapper.exceptions.FFmpegExecutionException;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,7 +46,7 @@ public class FFmpegEnhanced {
 		return new FFmpegEnhancedBuilder();
 	}
 
-	public void buildCommandAndExecute() {
+	public void buildCommandAndExecute() throws InterruptedException, IOException, FFmpegExecutionException {
 		command.add("ffmpeg");
 		if (globalOptions != null) {
 			globalOptions.getCommand().forEach(option -> {
@@ -51,8 +59,6 @@ public class FFmpegEnhanced {
 				command.add(v);
 			});
 		}
-//	outputs=	[out1,out2]
-//	options=	[option1]
 		command.add("-i");
 		command.add(input);
 		for (int i = 0; i < outputs.size(); i++) {
@@ -63,39 +69,37 @@ public class FFmpegEnhanced {
 			command.add(outputs.get(i));
 
 		}
-//		if (outputOptions != null) {
-//			outputOptions.forEach(outputOptions -> {
-//				command.addAll(outputOptions.getCommand());
-//			});
-//		}
-//		outputs.forEach(output -> {
-//			command.add(output);
-//
-//		});
 		ProcessBuilder pb = new ProcessBuilder(command);
-		if (this.workingDirectory != null) {
-			pb.directory(new File(this.workingDirectory));
+		if (workingDirectory != null) {
+			pb.directory(new File(workingDirectory));
 		}
-
+		String msg;
 		if (logFile != null) {
-			pb.redirectError(new File(workingDirectory, this.logFile));
+			pb.redirectError(new File(workingDirectory, logFile));
+			msg = " you can check the log of this command at" + new File(workingDirectory, logFile).getAbsolutePath();
 		} else {
-			pb.redirectError(ProcessBuilder.Redirect.DISCARD); // Discard error stream
+			msg = "";
 		}
-		try {
-			Process process = pb.start();
-			int exitCode = process.waitFor();
-			String msg = (logFile == null) ? "" : " you can check the log of this command at" + logFile;
-
-			if (exitCode == 0) {
-				System.out.println("FFmpeg process completed successfully" + msg);
-				System.out.println(pb.command().toString().replace(",", ""));
-			} else {
-				System.err.println("FFmpeg process failed with exit code: " + exitCode + msg);
-				System.out.println(pb.command().toString().replace(",", ""));
+		Process process = pb.start();
+		StringBuilder errorMsg = new StringBuilder();
+//must read the process input stream or discarding it before waiting for the process to finish, as it will halt indefinitely otherwise.
+		if (logFile == null) {
+			try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+				String line;
+				while ((line = errorReader.readLine()) != null) {
+					errorMsg.append(line).append("\n");
+				}
 			}
-		} catch (IOException | InterruptedException e) {
-			System.out.println(e.getMessage());
+		}
+		int exitCode = process.waitFor();
+
+		if (exitCode == 0) {
+			System.out.println("FFmpeg process completed successfully" + msg);
+			System.out.println(pb.command().toString().replaceAll("[,\\[\\]]", ""));
+		} else {
+			throw new FFmpegExecutionException(String.format(
+					"FFmpeg process failed with exit code: %d \nYour command: %s\nBelow is the complete ffmpeg log for this command\n%s",
+					exitCode, pb.command().toString().replaceAll("[,\\[\\]]", ""), errorMsg.toString()));
 		}
 	}
 
@@ -110,32 +114,43 @@ public class FFmpegEnhanced {
 		private List<OutputOptions> outputOptions = new ArrayList<>();
 		private GlobalOptions globalOptions;
 
-		public FFmpegEnhancedBuilder workingDirectory(String workingDirectory) {
-			if (workingDirectory == null || workingDirectory.isBlank())
-				return this;
+		public FFmpegEnhancedBuilder workingDirectory(String workingDirectory) throws NoSuchFileException {
+			if (workingDirectory == null || workingDirectory.isBlank()) {
+				throw new IllegalArgumentException(
+						"Working directory cannot be null or blank, but you used " + workingDirectory);
+			}
+			if (!Files.exists(Paths.get(workingDirectory)) || !Files.isDirectory(Paths.get(workingDirectory))) {
+				throw new NoSuchFileException("The specified working directory does not exist: " + workingDirectory);
+			}
+
 			this.workingDirectory = workingDirectory;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder logFile(String logFile) {
-			if (logFile == null || logFile.isBlank())
-				return this;
-
+		public FFmpegEnhancedBuilder logFile(String logFile) throws NoSuchFileException {
+			validateFileName(logFile, false);
 			this.logFile = logFile;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder input(String input) {
+		public FFmpegEnhancedBuilder input(String input) throws NoSuchFileException {
+			validateFileName(input, true);
 			this.input = input;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder outputs(List<String> outputs) {
+		public FFmpegEnhancedBuilder outputs(List<String> outputs) throws NoSuchFileException {
+			for (int i = 0; i < outputs.size(); i++) {
+				validateFileName(outputs.get(i), false);
+			}
 			this.outputs = outputs;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder outputs(String... outputs) {
+		public FFmpegEnhancedBuilder outputs(String... outputs) throws NoSuchFileException {
+			for (int i = 0; i < outputs.length; i++) {
+				validateFileName(outputs[i], false);
+			}
 			this.outputs = List.of(outputs);
 			return this;
 		}
@@ -158,6 +173,18 @@ public class FFmpegEnhanced {
 		public FFmpegEnhancedBuilder globalOptions(GlobalOptions globalOptions) {
 			this.globalOptions = globalOptions;
 			return this;
+		}
+
+		private void validateFileName(String fileName, boolean isMustExist) throws NoSuchFileException {
+			if (fileName == null || fileName.isBlank()) {
+				throw new IllegalArgumentException(String.format("File name cannot be null or blank."));
+			}
+			Path path = (this.workingDirectory != null ? Paths.get(this.workingDirectory, fileName)
+					: Paths.get(fileName));
+			if (isMustExist && (!Files.exists(path) || !Files.isRegularFile(path))) {
+				throw new NoSuchFileException("The specified file does not exist: " + path);
+			}
+
 		}
 
 		public FFmpegEnhanced build() {

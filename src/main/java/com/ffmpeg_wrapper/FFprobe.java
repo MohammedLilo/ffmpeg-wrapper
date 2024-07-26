@@ -1,9 +1,12 @@
 package com.ffmpeg_wrapper;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,7 +61,7 @@ public class FFprobe {
 
 			process = processBuilder.start();
 
-			if (this.outputFilePath == null || this.outputFilePath.isBlank()) {
+			if (this.outputFilePath == null) {
 				resultReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 				while ((line = resultReader.readLine()) != null) {
 					probeResult.append(line).append("\n");
@@ -110,29 +113,31 @@ public class FFprobe {
 			command.add("ffprobe");
 		}
 
-		public FFprobeBuilder workingDirectory(String workingDirectory) {
-			if (workingDirectory != null) {
-				this.processBuilder.directory(new File(workingDirectory));
+		public FFprobeBuilder workingDirectory(String workingDirectory) throws NoSuchFileException {
+			if (workingDirectory == null || workingDirectory.isBlank()) {
+				throw new IllegalArgumentException(
+						"Working directory cannot be null or blank, but you used " + workingDirectory);
+			}
+			if (!Files.exists(Paths.get(workingDirectory)) || !Files.isDirectory(Paths.get(workingDirectory))) {
+				throw new NoSuchFileException("The specified working directory does not exist: " + workingDirectory);
 			}
 			this.workingDirectory = workingDirectory;
 			return this;
 		}
 
-		public FFprobeBuilder inputFilePath(String inputFilePath) {
+		public FFprobeBuilder inputFilePath(String inputFilePath) throws NoSuchFileException {
+			validateFileName(inputFilePath, true);
 			command.add("-i");
 			command.add(inputFilePath);
 			this.inputFilePath = inputFilePath;
 			return this;
 		}
 
-		public FFprobeBuilder outputFilePath(String outputFilePath) {
-			this.outputFilePath = outputFilePath;
-
-			if (outputFilePath == null || outputFilePath.isBlank())
-				return this;
-
+		public FFprobeBuilder outputFilePath(String outputFilePath) throws NoSuchFileException {
+			validateFileName(outputFilePath, false);
 			command.add("-o");
 			command.add(outputFilePath);
+			this.outputFilePath = outputFilePath;
 			return this;
 		}
 
@@ -178,6 +183,18 @@ public class FFprobe {
 		public FFprobeBuilder selectedStream(StreamType selectedStream) {
 			this.selectedStream = selectedStream;
 			return this;
+		}
+
+		private void validateFileName(String fileName, boolean isMustExist) throws NoSuchFileException {
+			if (fileName == null || fileName.isBlank()) {
+				throw new IllegalArgumentException(String.format("File name cannot be null or blank."));
+			}
+			Path path = (this.workingDirectory != null ? Paths.get(this.workingDirectory, fileName)
+					: Paths.get(fileName));
+			if (isMustExist && !Files.exists(path)) {
+				throw new NoSuchFileException("The specified file does not exist: " + path);
+			}
+
 		}
 
 		public FFprobe build() {

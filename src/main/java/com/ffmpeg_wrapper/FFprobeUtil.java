@@ -1,6 +1,7 @@
 package com.ffmpeg_wrapper;
 
 import java.lang.reflect.Field;
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +20,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return A list containing all metadata.
+	 * @throws NoSuchFileException 
 	 */
-	public static FFprobeOutput extractMetadata(String filePath) {
+	public static FFprobeOutput extractMetadata(String filePath) throws NoSuchFileException {
 		FFprobe ffprobe = FFprobe.builder().inputFilePath(filePath).entryToShow(StreamMetadata.ALL)
 				.ffprobeOutputFormat(FFprobeOutputFormat.JSON).isShowFormat(true).build();
 		ffprobe.probe();
@@ -33,7 +35,7 @@ public class FFprobeUtil {
 		return output;
 	}
 
-	public static List<Stream> extractStreams(String filePath) {
+	public static List<Stream> extractStreams(String filePath) throws NoSuchFileException {
 		FFprobe ffprobe = FFprobe.builder().inputFilePath(filePath).entryToShow(StreamMetadata.ALL)
 				.ffprobeOutputFormat(FFprobeOutputFormat.JSON).build();
 		ffprobe.probe();
@@ -46,7 +48,7 @@ public class FFprobeUtil {
 		return output.getStreams();
 	}
 
-	public static List<Stream> extractStreamsByType(String filePath, StreamType streamType) {
+	public static List<Stream> extractStreamsByType(String filePath, StreamType streamType) throws NoSuchFileException {
 		List<Stream> allStreams = extractStreams(filePath);
 		List<Stream> specificStreams = new ArrayList<>();
 
@@ -69,9 +71,10 @@ public class FFprobeUtil {
 	 *                      present in the media file).
 	 * 
 	 * @return the stream from which to extract the specific metadata.
+	 * @throws NoSuchFileException 
 	 */
 	public static Object extractSpecificMetadata(String filePath, StreamMetadata metadataField, StreamType fromStream,
-			int index) {
+			int index) throws NoSuchFileException {
 		FFprobe ffprobe = FFprobe.builder().inputFilePath(filePath).selectedStream(fromStream)
 				.entryToShow(metadataField).ffprobeOutputFormat(FFprobeOutputFormat.JSON).build();
 		ffprobe.probe();
@@ -100,8 +103,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return A Format object containing format information.
+	 * @throws NoSuchFileException 
 	 */
-	public static Format extractFormat(String filePath) {
+	public static Format extractFormat(String filePath) throws NoSuchFileException {
 		FFprobe ffprobe = FFprobe.builder().inputFilePath(filePath).ffprobeOutputFormat(FFprobeOutputFormat.JSON)
 				.isShowFormat(true).build();
 		ffprobe.probe();
@@ -120,8 +124,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return A Tags object containing format information.
+	 * @throws NoSuchFileException 
 	 */
-	public static Tags extractTags(String filePath) {
+	public static Tags extractTags(String filePath) throws NoSuchFileException {
 		FFprobe ffprobe = FFprobe.builder().inputFilePath(filePath).ffprobeOutputFormat(FFprobeOutputFormat.JSON)
 				.isShowFormat(true).build();
 		ffprobe.probe();
@@ -140,8 +145,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return A map where the key is the stream index and the value is the bitrate.
+	 * @throws NoSuchFileException 
 	 */
-	public static long extractTotalBitrate(String filePath) {
+	public static long extractTotalBitrate(String filePath) throws NoSuchFileException {
 		return extractFormat(filePath).getTotalBitRate();
 	}
 
@@ -150,8 +156,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return The duration of the media file as a string.
+	 * @throws NoSuchFileException 
 	 */
-	public static double extractDuration(String filePath) {
+	public static double extractDuration(String filePath) throws NoSuchFileException {
 		return extractFormat(filePath).getDuration();
 	}
 
@@ -160,8 +167,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return The video resolution as a string.
+	 * @throws NoSuchFileException 
 	 */
-	public static VideoResolution extractResolution(String filePath) {
+	public static VideoResolution extractResolution(String filePath) throws NoSuchFileException {
 		int width = (Integer) extractSpecificMetadata(filePath, StreamMetadata.WIDTH, StreamType.VIDEO, 0);
 		int height = (Integer) extractSpecificMetadata(filePath, StreamMetadata.HEIGHT, StreamType.VIDEO, 0);
 
@@ -173,8 +181,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return True if the file contains a video stream, false otherwise.
+	 * @throws NoSuchFileException 
 	 */
-	public static boolean hasVideoStream(String filePath) {
+	public static boolean hasVideoStream(String filePath) throws NoSuchFileException {
 		return extractSpecificMetadata(filePath, StreamMetadata.CODEC_TYPE, StreamType.VIDEO, 0) != null;
 
 	}
@@ -184,8 +193,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return True if the file contains an audio stream, false otherwise.
+	 * @throws NoSuchFileException 
 	 */
-	public static boolean hasAudioStream(String filePath) {
+	public static boolean hasAudioStream(String filePath) throws NoSuchFileException {
 		return extractSpecificMetadata(filePath, StreamMetadata.CODEC_TYPE, StreamType.AUDIO, 0) != null;
 	}
 
@@ -194,8 +204,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return True if the file contains an attachment stream, false otherwise.
+	 * @throws NoSuchFileException 
 	 */
-	public static boolean hasAttachmentStream(String filePath) {
+	public static boolean hasAttachmentStream(String filePath) throws NoSuchFileException {
 		return extractSpecificMetadata(filePath, StreamMetadata.CODEC_TYPE, StreamType.ATTACHMENT, 0) != null;
 	}
 
@@ -204,8 +215,9 @@ public class FFprobeUtil {
 	 *
 	 * @param filePath The path to the media file.
 	 * @return True if the file contains an subtitle stream, false otherwise.
+	 * @throws NoSuchFileException 
 	 */
-	public static boolean hasSubtitleStream(String filePath) {
+	public static boolean hasSubtitleStream(String filePath) throws NoSuchFileException {
 		return extractSpecificMetadata(filePath, StreamMetadata.CODEC_TYPE, StreamType.SUBTITLE, 0) != null;
 	}
 
