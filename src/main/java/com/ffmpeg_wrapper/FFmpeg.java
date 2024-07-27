@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class FFmpegEnhanced {
+public class FFmpeg {
 
 	private String workingDirectory;
 	private String logFile;
@@ -32,7 +32,7 @@ public class FFmpegEnhanced {
 
 	private List<String> command = new LinkedList<>();
 
-	private FFmpegEnhanced(FFmpegEnhancedBuilder builder) {
+	private FFmpeg(FFmpegBuilder builder) {
 		this.workingDirectory = builder.workingDirectory;
 		this.logFile = builder.logFile;
 		this.input = builder.input;
@@ -42,8 +42,8 @@ public class FFmpegEnhanced {
 		this.globalOptions = builder.globalOptions;
 	}
 
-	public static FFmpegEnhancedBuilder builder() {
-		return new FFmpegEnhancedBuilder();
+	public static FFmpegBuilder builder() {
+		return new FFmpegBuilder();
 	}
 
 	public void buildCommandAndExecute() throws InterruptedException, IOException, FFmpegExecutionException {
@@ -103,7 +103,7 @@ public class FFmpegEnhanced {
 		}
 	}
 
-	public static class FFmpegEnhancedBuilder {
+	public static class FFmpegBuilder {
 
 		private String workingDirectory;
 		private String logFile;
@@ -114,7 +114,7 @@ public class FFmpegEnhanced {
 		private List<OutputOptions> outputOptions = new ArrayList<>();
 		private GlobalOptions globalOptions;
 
-		public FFmpegEnhancedBuilder workingDirectory(String workingDirectory) throws NoSuchFileException {
+		public FFmpegBuilder workingDirectory(String workingDirectory) throws NoSuchFileException {
 			if (workingDirectory == null || workingDirectory.isBlank()) {
 				throw new IllegalArgumentException(
 						"Working directory cannot be null or blank, but you used " + workingDirectory);
@@ -127,19 +127,19 @@ public class FFmpegEnhanced {
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder logFile(String logFile) throws NoSuchFileException {
+		public FFmpegBuilder logFile(String logFile) throws NoSuchFileException {
 			validateFileName(logFile, false);
 			this.logFile = logFile;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder input(String input) throws NoSuchFileException {
+		public FFmpegBuilder input(String input) throws NoSuchFileException {
 			validateFileName(input, true);
 			this.input = input;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder outputs(List<String> outputs) throws NoSuchFileException {
+		public FFmpegBuilder outputs(List<String> outputs) throws NoSuchFileException {
 			for (int i = 0; i < outputs.size(); i++) {
 				validateFileName(outputs.get(i), false);
 			}
@@ -147,7 +147,7 @@ public class FFmpegEnhanced {
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder outputs(String... outputs) throws NoSuchFileException {
+		public FFmpegBuilder outputs(String... outputs) throws NoSuchFileException {
 			for (int i = 0; i < outputs.length; i++) {
 				validateFileName(outputs[i], false);
 			}
@@ -155,22 +155,22 @@ public class FFmpegEnhanced {
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder inputOptions(InputOptions inputOptions) {
+		public FFmpegBuilder inputOptions(InputOptions inputOptions) {
 			this.inputOptions = inputOptions;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder outputOptions(List<OutputOptions> outputOptions) {
+		public FFmpegBuilder outputOptions(List<OutputOptions> outputOptions) {
 			this.outputOptions = outputOptions;
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder outputOptions(OutputOptions... outputOptions) {
+		public FFmpegBuilder outputOptions(OutputOptions... outputOptions) {
 			this.outputOptions = List.of(outputOptions);
 			return this;
 		}
 
-		public FFmpegEnhancedBuilder globalOptions(GlobalOptions globalOptions) {
+		public FFmpegBuilder globalOptions(GlobalOptions globalOptions) {
 			this.globalOptions = globalOptions;
 			return this;
 		}
@@ -187,8 +187,8 @@ public class FFmpegEnhanced {
 
 		}
 
-		public FFmpegEnhanced build() {
-			return new FFmpegEnhanced(this);
+		public FFmpeg build() {
+			return new FFmpeg(this);
 		}
 	}
 }

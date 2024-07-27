@@ -12,7 +12,7 @@ import com.ffmpeg_wrapper.exceptions.FFmpegExecutionException;
 import com.ffmpeg_wrapper.mapping.FFprobeOutput;
 import com.ffmpeg_wrapper.mapping.Stream;
 
-public class FFmpegEnhancedUtil {
+public class FFmpegUtil {
 
 	/**
 	 * Reduces the file size of a video or audio file to a target size (in bytes).
@@ -41,7 +41,7 @@ public class FFmpegEnhancedUtil {
 															.build();
 		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings)
 															.build();
-		FFmpegEnhanced fFmpegEnhanced = FFmpegEnhanced.builder().input(inputFilePath)
+		FFmpeg fFmpegEnhanced = FFmpeg.builder().input(inputFilePath)
 																.outputs(List.of(outputFilePath))	
 																.globalOptions(globalOptions)
 																.outputOptions(List.of(outputOptions))
@@ -166,7 +166,7 @@ public class FFmpegEnhancedUtil {
 															.build();
 		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
 															.build();
-		FFmpegEnhanced.builder().input(inputFilePath)
+		FFmpeg.builder().input(inputFilePath)
 								.outputs(outputFilePath)
 								.outputOptions(outputOptions)
 								.globalOptions(globalOptions)
@@ -185,7 +185,7 @@ public class FFmpegEnhancedUtil {
 				.streamsMappings(streamMappings).build();
 		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
 															.build();
-		FFmpegEnhanced.builder().input(inputFilePath)
+		FFmpeg.builder().input(inputFilePath)
 								.outputs(outputFilePath)
 								.outputOptions(outputOptions)
 								.globalOptions(globalOptions)
@@ -215,7 +215,7 @@ public class FFmpegEnhancedUtil {
 		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
 															.build();
 
-		FFmpegEnhanced.builder().input(inputFilePath)
+		FFmpeg.builder().input(inputFilePath)
 								.outputs(outputFilePath)
 								.outputOptions(outputOptions)
 								.globalOptions(globalOptions)
@@ -245,7 +245,7 @@ public class FFmpegEnhancedUtil {
 		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
 															.build();
 
-		FFmpegEnhanced.builder().input(inputFilePath)
+		FFmpeg.builder().input(inputFilePath)
 								.outputs(outputFilePath)
 								.outputOptions(outputOptions)
 								.globalOptions(globalOptions)
@@ -286,7 +286,7 @@ public class FFmpegEnhancedUtil {
 															.streamsMappings(streamMappings)
 															.build();
 
-		FFmpegEnhanced.builder().globalOptions(globalOptions)
+		FFmpeg.builder().globalOptions(globalOptions)
 								.input(inputFilePath)
 								.outputOptions(outputOptions)
 								.outputs(outputFilePath)
@@ -318,7 +318,7 @@ public class FFmpegEnhancedUtil {
 		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings)
 															.build();
 
-		FFmpegEnhanced.builder().globalOptions(globalOptions)
+		FFmpeg.builder().globalOptions(globalOptions)
 								.input(inputFilePath)
 								.outputOptions(outputOptions)
 								.outputs(outputFilePath)
@@ -357,7 +357,7 @@ public class FFmpegEnhancedUtil {
 								);
 		}
 
-		FFmpegEnhanced.builder().globalOptions(globalOptions)
+		FFmpeg.builder().globalOptions(globalOptions)
 								.input(inputFilePath)
 								.outputOptions(outputOptionsList)
 								.outputs(outputFilesPaths)
