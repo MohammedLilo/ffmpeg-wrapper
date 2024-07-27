@@ -121,28 +121,28 @@ public class FFmpegUtil {
 		return streamMappings;
 	}
 
-	private static List<StreamMapping> mapStreamsAndCopy(List<Stream> streams) {
-
-		String codecType;
-		String codecName;
-		int streamIndex;
-		Map<String, Integer> map = new HashMap<>();
-		List<StreamMapping> streamMappings = new ArrayList<>();
-		Stream stream;
-
-		for (int i = 0; i < streams.size(); i++) {
-			stream = streams.get(i);
-			codecType = stream.getCodecType().substring(0, 1);
-			codecName = stream.getCodecName();
-			streamIndex = map.getOrDefault(codecType, 0);
-			streamMappings
-					.add(StreamMapping.builder(streamIndex, codecType).isStreamCopy(true)
-																		.codecName(codecName)
-																		.build());
-			map.put(codecType, ++streamIndex);
-		}
-		return streamMappings;
-	}
+//	private static List<StreamMapping> mapStreamsAndCopy(List<Stream> streams) {
+//
+//		String codecType;
+//		String codecName;
+//		int streamIndex;
+//		Map<String, Integer> map = new HashMap<>();
+//		List<StreamMapping> streamMappings = new ArrayList<>();
+//		Stream stream;
+//
+//		for (int i = 0; i < streams.size(); i++) {
+//			stream = streams.get(i);
+//			codecType = stream.getCodecType().substring(0, 1);
+//			codecName = stream.getCodecName();
+//			streamIndex = map.getOrDefault(codecType, 0);
+//			streamMappings
+//					.add(StreamMapping.builder(streamIndex, codecType).isStreamCopy(true)
+//																		.codecName(codecName)
+//																		.build());
+//			map.put(codecType, ++streamIndex);
+//		}
+//		return streamMappings;
+//	}
 
 	/**
 	 * Changes the video resolution to the specified width and height. It will
@@ -340,7 +340,7 @@ public class FFmpegUtil {
 
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
-		List<StreamMapping> streamMappings = mapStreamsAndCopy(streams);
+		List<StreamMapping> streamMappings = mapStreams(streams);
 		List<OutputOptions> outputOptionsList = new ArrayList<>();
 		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
 															.build();

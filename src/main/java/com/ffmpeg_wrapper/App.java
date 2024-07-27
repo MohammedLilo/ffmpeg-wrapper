@@ -1,6 +1,8 @@
 package com.ffmpeg_wrapper;
 
 import java.io.IOException;
+import java.time.LocalTime;
+import java.util.List;
 
 import com.ffmpeg_wrapper.exceptions.FFmpegExecutionException;
 
@@ -70,10 +72,10 @@ public class App {
 //		FFmpegEnhancedUtil.changeResolution("C:\\Users\\msi-pc\\Desktop\\shortsolo.mp4",
 //				"C:\\Users\\msi-pc\\Desktop\\new.mp4", VideoResolution.P480);
 
-		
-		FFprobe fFprobe = FFprobe.builder().inputFilePath("C:\\Users\\msi-pc\\Desktop\\ost.mp3").entryToShow(StreamMetadata.WIDTH).build();
-fFprobe.probe();
-System.out.println("error "+fFprobe.getProbeError());System.out.println("result "+fFprobe.getProbeResult());
+		FFmpegUtil.splitVideo("C:\\Users\\msi-pc\\Desktop\\solo_leveling_video.mp4",List.of("C:\\Users\\msi-pc\\Desktop\\split1.mp4","C:\\Users\\msi-pc\\Desktop\\split2.mp4"), List.of(LocalTime.of(0, 0,15),LocalTime.of(0, 0,20)));
+//		FFprobe fFprobe = FFprobe.builder().inputFilePath("C:\\Users\\msi-pc\\Desktop\\ost.mp3").entryToShow(StreamMetadata.WIDTH).build();
+//fFprobe.probe();
+//System.out.println("error "+fFprobe.getProbeError());System.out.println("result "+fFprobe.getProbeResult());
 
 //		System.out.println(FFprobeUtil.extractMetadata("C:\\Users\\msi-pc\\Desktop\\shortsolo.mp4"));
 	}
