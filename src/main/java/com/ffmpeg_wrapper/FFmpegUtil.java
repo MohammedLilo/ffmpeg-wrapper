@@ -20,34 +20,30 @@ public class FFmpegUtil {
 	 * @param inputFilePath  Input file path.
 	 * @param outputFilePath Output file path.
 	 * @param targetSize     Target file size in bytes (using binary prefix).
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws FFmpegExecutionException 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
 	 */
-	public static void reduceFileSize(String inputFilePath, String outputFilePath, long targetSize) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void reduceFileSize(String inputFilePath, String outputFilePath, long targetSize)
+			throws InterruptedException, IOException, FFmpegExecutionException {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		long size = output.getFormat().getSize();
 		List<Long> newBitrates = new ArrayList<>();
 		double ratio = (double) targetSize / size;
 		long newBitrate = 0;
-		
+
 		for (int i = 0; i < streams.size(); i++) {
 			newBitrate = (long) (Math.ceil(streams.get(i).getBitRate() * ratio));
 			newBitrates.add(newBitrate);
 		}
 		List<StreamMapping> streamMappings = mapStreamsAndBitrates(streams, newBitrates);
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
-		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings)
-															.build();
-		FFmpeg fFmpegEnhanced = FFmpeg.builder().input(inputFilePath)
-																.outputs(List.of(outputFilePath))	
-																.globalOptions(globalOptions)
-																.outputOptions(List.of(outputOptions))
-																.build();
-			
-			fFmpegEnhanced.buildCommandAndExecute();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).build();
+		FFmpeg fFmpegEnhanced = FFmpeg.builder().input(inputFilePath).outputs(List.of(outputFilePath))
+				.globalOptions(globalOptions).outputOptions(List.of(outputOptions)).build();
+
+		fFmpegEnhanced.buildCommandAndExecute();
 	}
 
 	private static List<StreamMapping> mapStreamsAndBitrates(List<Stream> streams, List<Long> newBitrates) {
@@ -66,9 +62,7 @@ public class FFmpegUtil {
 			bitrate = newBitrates.get(i);
 
 			streamMappings
-					.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName)
-																		.bitrate(bitrate)
-																		.build());
+					.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName).bitrate(bitrate).build());
 			map.put(codecType, ++streamIndex);
 		}
 
@@ -89,8 +83,7 @@ public class FFmpegUtil {
 			codecType = stream.getCodecType().substring(0, 1);
 			codecName = stream.getCodecName();
 			streamIndex = map.getOrDefault(codecType, 0);
-			streamMappings.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName)
-																			.build());
+			streamMappings.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName).build());
 			map.put(codecType, ++streamIndex);
 		}
 		return streamMappings;
@@ -114,8 +107,7 @@ public class FFmpegUtil {
 
 			codecName = stream.getCodecName();
 			streamIndex = map.getOrDefault(codecType, 0);
-			streamMappings.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName)
-																			.build());
+			streamMappings.add(StreamMapping.builder(streamIndex, codecType).codecName(codecName).build());
 			map.put(codecType, ++streamIndex);
 		}
 		return streamMappings;
@@ -152,30 +144,26 @@ public class FFmpegUtil {
 	 * @param outputFilePath Output video file path.
 	 * @param width          Target width in pixels.
 	 * @param height         Target height in pixels.
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws FFmpegExecutionException 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
 	 */
-	public static void changeResolution(String inputFilePath, String outputFilePath, int width, int height) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void changeResolution(String inputFilePath, String outputFilePath, int width, int height)
+			throws InterruptedException, IOException, FFmpegExecutionException {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
 
 		OutputOptions outputOptions = OutputOptions.builder().videoResolution(String.format("%dx%d", width, height))
-															.streamsMappings(streamMappings)
-															.build();
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
-		FFmpeg.builder().input(inputFilePath)
-								.outputs(outputFilePath)
-								.outputOptions(outputOptions)
-								.globalOptions(globalOptions)
-								.build()
-								.buildCommandAndExecute();
+				.streamsMappings(streamMappings).build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+		FFmpeg.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
 
 	}
 
-	public static void changeResolution(String inputFilePath, String outputFilePath, VideoResolution newResolution) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void changeResolution(String inputFilePath, String outputFilePath, VideoResolution newResolution)
+			throws InterruptedException, IOException, FFmpegExecutionException {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
@@ -183,14 +171,9 @@ public class FFmpegUtil {
 		OutputOptions outputOptions = OutputOptions.builder()
 				.videoResolution(String.format("%dx%d", newResolution.getWidth(), newResolution.getHeight()))
 				.streamsMappings(streamMappings).build();
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
-		FFmpeg.builder().input(inputFilePath)
-								.outputs(outputFilePath)
-								.outputOptions(outputOptions)
-								.globalOptions(globalOptions)
-								.build()
-								.buildCommandAndExecute();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+		FFmpeg.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
 
 	}
 
@@ -200,27 +183,21 @@ public class FFmpegUtil {
 	 * @param inputFilePath  Input video file path.
 	 * @param outputFilePath Output video file path.
 	 * @param format         Target format (e.g., mp4, avi).
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws FFmpegExecutionException 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
 	 */
-	public static void convertFormat(String inputFilePath, String outputFilePath, String format) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void convertFormat(String inputFilePath, String outputFilePath, String format)
+			throws InterruptedException, IOException, FFmpegExecutionException {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
 
-		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings)
-															.format(format)
-															.build();
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).format(format).build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
 
-		FFmpeg.builder().input(inputFilePath)
-								.outputs(outputFilePath)
-								.outputOptions(outputOptions)
-								.globalOptions(globalOptions)
-								.build()
-								.buildCommandAndExecute();
+		FFmpeg.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
 	}
 
 	/**
@@ -231,26 +208,21 @@ public class FFmpegUtil {
 	 * @param inputFilePath  Input video file path.
 	 * @param outputFilePath Output video file path.
 	 * @param format         Target format (e.g., mp4, avi).
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws FFmpegExecutionException 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
 	 */
-	public static void convertFormat(String inputFilePath, String outputFilePath) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void convertFormat(String inputFilePath, String outputFilePath)
+			throws InterruptedException, IOException, FFmpegExecutionException {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
 
-		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings)
-															.build();
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
 
-		FFmpeg.builder().input(inputFilePath)
-								.outputs(outputFilePath)
-								.outputOptions(outputOptions)
-								.globalOptions(globalOptions)
-								.build()
-								.buildCommandAndExecute();
+		FFmpeg.builder().input(inputFilePath).outputs(outputFilePath).outputOptions(outputOptions)
+				.globalOptions(globalOptions).build().buildCommandAndExecute();
 	}
 
 	/**
@@ -268,30 +240,23 @@ public class FFmpegUtil {
 	 *                       "output.mp4", "00:00:00", "00:00:10"); This will cut
 	 *                       the first 10 seconds from the input.mp4 and save it as
 	 *                       output.mp4.
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws FFmpegExecutionException 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
 	 */
-	public static void cutPlayableMedia(String inputFilePath, String outputFilePath, String startTime,
-			String duration) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void cutPlayableMedia(String inputFilePath, String outputFilePath, String startTime, String duration)
+			throws InterruptedException, IOException, FFmpegExecutionException {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
 
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
 
-		OutputOptions outputOptions = OutputOptions.builder().startTime(startTime)
-															.duration(duration)
-															.streamsMappings(streamMappings)
-															.build();
+		OutputOptions outputOptions = OutputOptions.builder().startTime(startTime).duration(duration)
+				.streamsMappings(streamMappings).build();
 
-		FFmpeg.builder().globalOptions(globalOptions)
-								.input(inputFilePath)
-								.outputOptions(outputOptions)
-								.outputs(outputFilePath)
-								.build()
-								.buildCommandAndExecute();
+		FFmpeg.builder().globalOptions(globalOptions).input(inputFilePath).outputOptions(outputOptions)
+				.outputs(outputFilePath).build().buildCommandAndExecute();
 	}
 
 	/**
@@ -302,67 +267,92 @@ public class FFmpegUtil {
 	 * @param inputFilePath  Input file path.
 	 * @param outputFilePath Output file path.
 	 * @param streamType     Type of the streams to extract.
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws FFmpegExecutionException 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
 	 * 
 	 */
-	public static void extractStreamsOfType(String inputFilePath, String outputFilePath, StreamType streamType) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void extractStreamsOfType(String inputFilePath, String outputFilePath, StreamType streamType)
+			throws InterruptedException, IOException, FFmpegExecutionException {
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreamsOfType(streams, streamType);
 
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
 
-		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings)
-															.build();
+		OutputOptions outputOptions = OutputOptions.builder().streamsMappings(streamMappings).build();
 
-		FFmpeg.builder().globalOptions(globalOptions)
-								.input(inputFilePath)
-								.outputOptions(outputOptions)
-								.outputs(outputFilePath)
-								.build()
-								.buildCommandAndExecute();
+		FFmpeg.builder().globalOptions(globalOptions).input(inputFilePath).outputOptions(outputOptions)
+				.outputs(outputFilePath).build().buildCommandAndExecute();
 	}
 
 	/**
-	 * Splits a video to multiple video files of the same duration.
+	 * Splits a video to multiple video files based on a list of desired durations.
 	 *
-	 * @param inputFiles     List of input video files to concatenate.
-	 * @param outputFilePath Output video file path.
-	 * @throws IOException 
-	 * @throws InterruptedException 
-	 * @throws FFmpegExecutionException 
+	 * @param inputFiles       List of input video files to concatenate.
+	 * @param outputFilesPaths list of output video files paths.
+	 * @param durations        list of desired durations for each output video
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
 	 * 
 	 */
-	public static void splitVideo(String inputFilePath, List<String> outputFilesPaths, List<LocalTime> duration) throws InterruptedException, IOException, FFmpegExecutionException {
+	public static void splitVideo(String inputFilePath, List<String> outputFilesPaths, List<LocalTime> durations)
+			throws InterruptedException, IOException, FFmpegExecutionException {
+		if (outputFilesPaths.size() != durations.size())
+			throw new IllegalArgumentException("outputFilesPaths list and durations list must be of the same size");
 
 		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
 		List<Stream> streams = output.getStreams();
 		List<StreamMapping> streamMappings = mapStreams(streams);
 		List<OutputOptions> outputOptionsList = new ArrayList<>();
-		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true)
-															.build();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
 		LocalTime startTime = LocalTime.of(0, 0, 0);
 		LocalTime durationTime = LocalTime.of(0, 0, 0);
 		for (int i = 0; i < outputFilesPaths.size(); i++) {
 			startTime = startTime.plusSeconds(durationTime.toSecondOfDay());
-			durationTime = duration.get(i);
+			durationTime = durations.get(i);
 
 			outputOptionsList.add(OutputOptions.builder().duration(durationTime.toString())
-															.startTime(startTime.toString())
-															.streamsMappings(streamMappings)
-															.build()
-								);
+					.startTime(startTime.toString()).streamsMappings(streamMappings).build());
 		}
 
-		FFmpeg.builder().globalOptions(globalOptions)
-								.input(inputFilePath)
-								.outputOptions(outputOptionsList)
-								.outputs(outputFilesPaths)
-								.build()
-								.buildCommandAndExecute();
+		FFmpeg.builder().globalOptions(globalOptions).input(inputFilePath).outputOptions(outputOptionsList)
+				.outputs(outputFilesPaths).build().buildCommandAndExecute();
+
+	}
+
+	/**
+	 * Splits a video to multiple video files (with equal durations)
+	 *
+	 * @param inputFiles       List of input video files to concatenate.
+	 * @param outputFilesPaths list of output video files paths.
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws FFmpegExecutionException
+	 * 
+	 */
+	public static void splitVideo(String inputFilePath, List<String> outputFilesPaths)
+			throws InterruptedException, IOException, FFmpegExecutionException {
+
+		FFprobeOutput output = FFprobeUtil.extractMetadata(inputFilePath);
+		List<Stream> streams = output.getStreams();
+		List<StreamMapping> streamMappings = mapStreams(streams);
+		List<OutputOptions> outputOptionsList = new ArrayList<>();
+		GlobalOptions globalOptions = GlobalOptions.builder().isOverwriteOutput(true).build();
+
+		double startTime = 0;
+		double duration = output.getFormat().getDuration();
+		double outputDuration = duration / outputFilesPaths.size();
+
+		for (int i = 0; i < outputFilesPaths.size(); i++) {
+			outputOptionsList.add(OutputOptions.builder().duration(String.valueOf(outputDuration))
+					.startTime(String.valueOf(startTime)).streamsMappings(streamMappings).build());
+			startTime += outputDuration;
+		}
+
+		FFmpeg.builder().globalOptions(globalOptions).input(inputFilePath).outputOptions(outputOptionsList)
+				.outputs(outputFilesPaths).build().buildCommandAndExecute();
 
 	}
 

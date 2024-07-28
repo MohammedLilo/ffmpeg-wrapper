@@ -71,9 +71,14 @@ public class App {
 //				List.of(LocalTime.of(0, 0, 10), LocalTime.of(0, 0, 30), LocalTime.of(0, 0, 10)));
 //		FFmpegEnhancedUtil.changeResolution("C:\\Users\\msi-pc\\Desktop\\shortsolo.mp4",
 //				"C:\\Users\\msi-pc\\Desktop\\new.mp4", VideoResolution.P480);
-
-		FFmpegUtil.splitVideo("C:\\Users\\msi-pc\\Desktop\\solo_leveling_video.mp4",List.of("C:\\Users\\msi-pc\\Desktop\\split1.mp4","C:\\Users\\msi-pc\\Desktop\\split2.mp4"), List.of(LocalTime.of(0, 0,15),LocalTime.of(0, 0,20)));
-//		FFprobe fFprobe = FFprobe.builder().inputFilePath("C:\\Users\\msi-pc\\Desktop\\ost.mp3").entryToShow(StreamMetadata.WIDTH).build();
+		long start = System.currentTimeMillis();
+		long end;
+		FFmpegUtil.splitVideo("C:\\Users\\msi-pc\\Desktop\\solo_leveling_video.mp4",
+				List.of("split1.mp4", "split2.mp4", "split3.mp4", "split4.mp4"));
+		end = (System.currentTimeMillis() - start) / 1000;
+		System.out.println(end + " seconds");
+		// FFprobe fFprobe =
+		// FFprobe.builder().inputFilePath("C:\\Users\\msi-pc\\Desktop\\ost.mp3").entryToShow(StreamMetadata.WIDTH).build();
 //fFprobe.probe();
 //System.out.println("error "+fFprobe.getProbeError());System.out.println("result "+fFprobe.getProbeResult());
 
